@@ -70,8 +70,8 @@ body, html {
 <!-- End Radar Chart -->
 
 <div id="controllers">
-    <p>The current time step is <strong id="step">30000.0</strong><br/>
-    <input type="range" min="30000" max="50000" value="30000.0" step="100.0" id="timestep" style="width:250px;"/>
+    <p>The current time step is <strong id="step">0.0</strong><br/>
+    <input type="range" min="0" max="50000" value="0.0" step="1.0" id="timestep" style="width:250px;"/>
     <button type="button" id="Play_Pause" >Play</button>
     <button type="button" id="Rec_Pause" >Rec</button>
 </div>
@@ -135,10 +135,16 @@ var selecteds = [];
 var inverteds = [];
 var selectedtemp = null;
 var selected = false;
-var sel_dim = ' DSSP';
-var file_name = 'data/STEPS/30000.csv';
+var sel_dim = 'score';
+var file_name = 'data/log/0.csv';
 
-var minMaxValues = {" DSSP":[0,18],  " SASA":[21,36], " GYRATE":[0.7,1.2], " ENERGY":[-83000,-76000], " RMSF":[0.2,0.4]}; 
+//var minMaxValues = {" DSSP":[0,18],  " SASA":[21,36], " GYRATE":[0.7,1.2], " ENERGY":[-83000,-76000], " RMSF":[0.2,0.4]}; 
+var minMaxValues = {"score":[1000000000,2000000000]}; 
+ndim = 48
+for (var d = 0; d < ndim; d++) {
+    var key = "d" + d.toString();
+    minMaxValues[key] = [-180,180]; 
+}
 
 // update color
 function changeColor(dimension) {
@@ -186,7 +192,7 @@ function createRadarLine(key, dimensions, d) {
     var line =  {"key": key,
                  "values":[]};
     for (dim in dimensions) {
-        if (dimensions[dim] != "AMINO ACID") {
+        if (dimensions[dim] != "id" && dimensions[dim] != "score") {
             var k = dimensions[dim];
             var v = radarChartScale(d[k],minMaxValues[k][0],minMaxValues[k][1]);
             if (inverteds.indexOf(dimensions[dim]) > -1) {
@@ -207,11 +213,11 @@ function updateRadarChart(data) {
     data.forEach(function(d) {  
         var s = selecteds.indexOf(d.id);
         if (s > -1) {
-            rcdata.push(createRadarLine(d["AMINO ACID"], axesorder, d));              
+            rcdata.push(createRadarLine(d["id"], axesorder, d));              
         }                                            
     }); 
     if (selectedtemp != null && selecteds.indexOf(selectedtemp.id) < 0) {
-        rcdata.push(createRadarLine(selectedtemp["AMINO ACID"], axesorder, selectedtemp));  
+        rcdata.push(createRadarLine(selectedtemp["id"], axesorder, selectedtemp));  
     }
     
     var displaylegend = false;
@@ -248,7 +254,7 @@ function parallelCoordinates(file_name) {
         .dimensions({})   
         .data([]) 
         .data(data)
-        .hideAxis(["id"])   
+        //.hideAxis(["id"])   
         .render() 
         .reorderable()
         .brushMode("1D-axes");  // enable brushing
@@ -309,7 +315,7 @@ function parallelCoordinates(file_name) {
         play = false;
         rec  = false;
 	    d3.select("#step").text(this.value);
-	    file_name = 'data/STEPS/' + this.value.toString() + '.csv'
+	    file_name = 'data/log/' + this.value.toString() + '.csv'
         parallelCoordinates(file_name);
     });
 
@@ -450,7 +456,7 @@ function parallelCoordinates(file_name) {
     setTimeout(function(){
         document.getElementById("timestep").stepUp();
         d3.select("#step").text(document.getElementById("timestep").value);
-        file_name = 'data/STEPS/' + document.getElementById("timestep").value.toString() + '.csv'
+        file_name = 'data/log/' + document.getElementById("timestep").value.toString() + '.csv'
         parallelCoordinates(file_name);
     }, 100);
   }
@@ -461,7 +467,7 @@ function parallelCoordinates(file_name) {
     setTimeout(function(){
         document.getElementById("timestep").stepDown();
         d3.select("#step").text(document.getElementById("timestep").value);
-        file_name = 'data/STEPS/' + document.getElementById("timestep").value.toString() + '.csv'
+        file_name = 'data/log/' + document.getElementById("timestep").value.toString() + '.csv'
         parallelCoordinates(file_name);
     }, 100);
   }
