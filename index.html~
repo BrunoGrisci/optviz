@@ -1,6 +1,6 @@
 <!doctype html>
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/ >
-<title>Mutation viz</title>
+<title>Optviz</title>
 
 <!-- SlickGrid -->
 <link rel="stylesheet" href="lib/slickgrid/slick.grid.css" type="text/css"/>
@@ -71,7 +71,7 @@ body, html {
 
 <div id="controllers">
     <p>The current time step is <strong id="step">0.0</strong><br/>
-    <input type="range" min="0" max="50000" value="0.0" step="1.0" id="timestep" style="width:250px;"/>
+    <input type="range" min="0" max="100" value="0.0" step="1.0" id="timestep" style="width:250px;"/>
     <button type="button" id="Play_Pause" >Play</button>
     <button type="button" id="Rec_Pause" >Rec</button>
 </div>
@@ -85,10 +85,18 @@ body, html {
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
+//var minMaxValues = {" DSSP":[0,18],  " SASA":[21,36], " GYRATE":[0.7,1.2], " ENERGY":[-83000,-76000], " RMSF":[0.2,0.4]}; 
+var minMaxValues = {"score":[0,100000000000]};
+
 var zcolorscale = d3.scale.linear()
-  .domain([-2,-0.5,0.5,2])
+  .domain([-2,-0.1,0.1,2])
   .range(["brown", "#999", "#999", "steelblue"])
   .interpolate(d3.interpolateLab);
+  /*//.domain([minMaxValues["score"][0], minMaxValues["score"][1]])
+  //.range(["brown", "#999", "#999", "steelblue"])
+  .domain([minMaxValues["score"][0], 0.5, 0.5, minMaxValues["score"][1]])
+  .range(["yellow", "#999", "#999", "black"])
+  .interpolate(d3.interpolateLab);*/
 
 var pc = d3.parcoords()("#example")
   //.color(color)
@@ -138,8 +146,7 @@ var selected = false;
 var sel_dim = 'score';
 var file_name = 'data/log/0.csv';
 
-//var minMaxValues = {" DSSP":[0,18],  " SASA":[21,36], " GYRATE":[0.7,1.2], " ENERGY":[-83000,-76000], " RMSF":[0.2,0.4]}; 
-var minMaxValues = {"score":[1000000000,2000000000]}; 
+ 
 ndim = 48
 for (var d = 0; d < ndim; d++) {
     var key = "d" + d.toString();
@@ -192,7 +199,7 @@ function createRadarLine(key, dimensions, d) {
     var line =  {"key": key,
                  "values":[]};
     for (dim in dimensions) {
-        if (dimensions[dim] != "id") {
+        if (dimensions[dim] != "id" && dimensions[dim] != "score") {
             var k = dimensions[dim];
             var v = radarChartScale(d[k],minMaxValues[k][0],minMaxValues[k][1]);
             if (inverteds.indexOf(dimensions[dim]) > -1) {
@@ -254,7 +261,7 @@ function parallelCoordinates(file_name) {
         .dimensions({})   
         .data([]) 
         .data(data)
-        //.hideAxis(["id"])   
+        .hideAxis(["id"])   
         .render() 
         .reorderable()
         .brushMode("1D-axes");  // enable brushing
@@ -263,7 +270,12 @@ function parallelCoordinates(file_name) {
       for (axis in axesorder) {
         var key = axesorder[axis];
         if (key in minMaxValues) {
-            pc.dimensions()[key].yscale.domain([minMaxValues[key][0], minMaxValues[key][1]]);
+            if (key == "score") {
+                //pc.dimensions()[key].yscale.domain([minMaxValues[key][0], minMaxValues[key][1]]);    
+            }
+            else{
+                pc.dimensions()[key].yscale.domain([minMaxValues[key][0], minMaxValues[key][1]]);
+            }
         }
       }
  
@@ -448,10 +460,10 @@ function parallelCoordinates(file_name) {
       
   });
   
-  var v = document.getElementById("timestep").value;
-  var s = document.getElementById("timestep").step;
-  var m = document.getElementById("timestep").max;
-  var n = document.getElementById("timestep").min;
+  var v = Number(document.getElementById("timestep").value);
+  var s = Number(document.getElementById("timestep").step);
+  var m = Number(document.getElementById("timestep").max);
+  var n = Number(document.getElementById("timestep").min);
   if (play && v + s <= m) {
     setTimeout(function(){
         document.getElementById("timestep").stepUp();
